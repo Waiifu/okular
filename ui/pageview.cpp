@@ -248,6 +248,7 @@ public:
 
     int setting_viewCols;
     bool rtl_Mode;
+    int pagePaddings;
     // Keep track of whether tablet pen is currently pressed down
     bool penDown;
 
@@ -398,6 +399,7 @@ PageView::PageView( QWidget *parent, Okular::Document *document )
     d->aMouseMagnifier = nullptr;
     d->aFitWindowToPage = nullptr;
     d->trimBoundingBox = Okular::NormalizedRect(); // Null box
+    d->pagePaddings = Okular::Settings::pagePaddings();
 
     switch( Okular::Settings::zoomMode() )
     {
@@ -423,7 +425,7 @@ PageView::PageView( QWidget *parent, Okular::Document *document )
             break;
         }
     }
-
+    
     d->delayResizeEventTimer = new QTimer( this );
     d->delayResizeEventTimer->setSingleShot( true );
     d->delayResizeEventTimer->setObjectName(QStringLiteral("delayResizeEventTimer"));
@@ -918,6 +920,12 @@ void PageView::reparseConfig()
     if (Okular::Settings::rtlReadingDirection() != d->rtl_Mode )
     {
         d->rtl_Mode = Okular::Settings::rtlReadingDirection();
+        slotRelayoutPages();
+    }
+
+    if ( Okular::Settings::pagePaddings() != d->pagePaddings )
+    {
+        d->pagePaddings = Okular::Settings::pagePaddings();
         slotRelayoutPages();
     }
 
@@ -3713,50 +3721,54 @@ void PageView::drawDocumentOnPainter( const QRect contentsRect, QPainter * p )
         return QColor( t*backColor.red(), t*backColor.green(), t*backColor.blue() );
     };
 
+    // PAGE PADDING
     // width of the shadow in device pixels
-    static const int shadowWidth = 2*dpr;
 
     // iterate over all items painting a black outline and a simple bottom/right gradient
-    for ( const PageViewItem * item : qAsConst( d->items ) )
+    if ( d->pagePaddings != 0) 
     {
-        // check if a piece of the page intersects the contents rect
-        if ( !item->isVisible() || !item->croppedGeometry().intersects( checkRect ) )
-            continue;
-
-        // get item and item's outline geometries
-        QRect itemGeometry = item->croppedGeometry();
-
-        // move the painter to the top-left corner of the real page
-        p->save();
-        p->translate( itemGeometry.left(), itemGeometry.top() );
-
-        // draw the page outline (black border and bottom-right shadow)
-        if ( !itemGeometry.contains( contentsRect ) )
+        static const int shadowWidth = 2*dpr;
+        for ( const PageViewItem * item : qAsConst( d->items ) )
         {
-            int itemWidth = itemGeometry.width();
-            int itemHeight = itemGeometry.height();
-            // draw simple outline
-            QPen pen( Qt::black );
-            pen.setWidth(0);
-            p->setPen( pen );
+            // check if a piece of the page intersects the contents rect
+            if ( !item->isVisible() || !item->croppedGeometry().intersects( checkRect ) )
+                continue;
 
-            QRectF outline( -1.0/dpr, -1.0/dpr, itemWidth + 1.0/dpr, itemHeight + 1.0/dpr );
-            p->drawRect( outline );
+            // get item and item's outline geometries
+            QRect itemGeometry = item->croppedGeometry();
 
-            // draw bottom/right gradient
-            for ( int i = 1; i <= shadowWidth; i++ )
+            // move the painter to the top-left corner of the real page
+            p->save();
+            p->translate( itemGeometry.left(), itemGeometry.top() );
+
+            // draw the page outline (black border and bottom-right shadow)
+            if ( !itemGeometry.contains( contentsRect ) )
             {
-                pen.setColor( interpolateColor( double(i)/( shadowWidth+1 ) ) );
+                int itemWidth = itemGeometry.width();
+                int itemHeight = itemGeometry.height();
+                // draw simple outline
+                QPen pen( Qt::black );
+                pen.setWidth(0);
                 p->setPen( pen );
-                QPointF left( (i-1)/dpr, itemHeight + i/dpr );
-                QPointF up( itemWidth + i/dpr, (i-1)/dpr );
-                QPointF corner( itemWidth + i/dpr, itemHeight + i/dpr);
-                p->drawLine( left, corner );
-                p->drawLine( up, corner );
-            }
-        }
 
-        p->restore();
+                QRectF outline( -1.0/dpr, -1.0/dpr, itemWidth + 1.0/dpr, itemHeight + 1.0/dpr );
+                p->drawRect( outline );
+
+                // draw bottom/right gradient
+                for ( int i = 1; i <= shadowWidth; i++ )
+                {
+                    pen.setColor( interpolateColor( double(i)/( shadowWidth+1 ) ) );
+                    p->setPen( pen );
+                    QPointF left( (i-1)/dpr, itemHeight + i/dpr );
+                    QPointF up( itemWidth + i/dpr, (i-1)/dpr );
+                    QPointF corner( itemWidth + i/dpr, itemHeight + i/dpr);
+                    p->drawLine( left, corner );
+                    p->drawLine( up, corner );
+                }
+            }
+
+            p->restore();
+        }
     }
 }
 
@@ -4086,11 +4098,13 @@ void PageView::selectionClear(const ClearMode mode)
 }
 
 // const to be used for both zoomFactorFitMode function and slotRelayoutPages.
-static const int kcolWidthMargin = 6;
-static const int krowHeightMargin = 12;
+static const int kcolWidthMargin = 0;
+// PAGE PADDING
+//static const int krowHeightMargin = 3;
 
 double PageView::zoomFactorFitMode( ZoomMode mode )
 {
+    const int krowHeightMargin = d->pagePaddings;
     const int pageCount = d->items.count();
     if ( pageCount == 0 )
         return 0;
@@ -4678,6 +4692,7 @@ void PageView::slotRelayoutPages()
     const bool continuousView = Okular::Settings::viewContinuous();
     const int nCols = overrideCentering ? 1 : viewColumns();
     const bool singlePageViewMode = Okular::Settings::viewMode() == Okular::Settings::EnumViewMode::Single;
+    const int krowHeightMargin = d->pagePaddings;
 
     if ( d->aFitWindowToPage )
         d->aFitWindowToPage->setEnabled( !continuousView && singlePageViewMode );
@@ -5711,6 +5726,7 @@ void PageView::slotToggleChangeColors()
 
 void PageView::slotFitWindowToPage()
 {
+    const int krowHeightMargin = d->pagePaddings;
     const PageViewItem *currentPageItem = nullptr;
     QSize viewportSize = viewport()->size();
     for ( const PageViewItem *pageItem : qAsConst(d->items) )
