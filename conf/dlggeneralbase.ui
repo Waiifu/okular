@@ -444,7 +444,77 @@ For files which were opened before the previous zoom is applied.</string>
          </property>
         </item>
        </widget>
+        </item>
+        <item row="3" column="0">
+       <widget class="QLabel" name="paddingLabel">
+        <property name="text">
+         <string>Page Padding:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="buddy">
+         <cstring>kcfg_PagePaddings</cstring>
+        </property>
+       </widget>
+       </item>
+       <item row="3" column="1">
+       <widget class="QSpinBox" name="kcfg_PagePaddings">
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>30</number>
+        </property>
+       </widget>
+     </item>
+        <item row="4" column="0">
+       <widget class="QLabel" name="scrollDelayLabel">
+        <property name="text">
+         <string>Scroll Delay:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="buddy">
+         <cstring>kcfg_ScrollDelay</cstring>
+        </property>
+       </widget>
+       </item>
+       <item row="4" column="1">
+       <widget class="QSpinBox" name="kcfg_ScrollDelay">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>30</number>
+        </property>
+       </widget>
       </item>
+        <item row="5" column="0">
+       <widget class="QLabel" name="scrollOffsetLabel">
+        <property name="text">
+         <string>Scroll Offset:</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="buddy">
+         <cstring>kcfg_ScrollOffset</cstring>
+        </property>
+       </widget>
+       </item>
+       <item row="5" column="1">
+       <widget class="QSpinBox" name="kcfg_ScrollOffset">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>30</number>
+        </property>
+       </widget>
+      </item>
+
      </layout>
     </widget>
    </item>

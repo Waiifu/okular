@@ -299,6 +299,21 @@
    <min>1</min>
    <max>8</max>
   </entry>
+  <entry key="PagePaddings" type="UInt" >
+   <default>3</default>
+   <min>0</min>
+   <max>30</max>
+  </entry>
+  <entry key="ScrollDelay" type="UInt" >
+   <default>2</default>
+   <min>1</min>
+   <max>200</max>
+  </entry>
+   <entry key="ScrollOffset" type="UInt" >
+   <default>4</default>
+   <min>1</min>
+   <max>200</max>
+  </entry>
   <entry key="TrimMargins" type="Bool" >
    <default>false</default>
   </entry>
