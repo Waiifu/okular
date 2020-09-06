@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 
 # KDE Application Version, managed by release script
 set (RELEASE_SERVICE_VERSION_MAJOR "20")
-set (RELEASE_SERVICE_VERSION_MINOR "07")
+set (RELEASE_SERVICE_VERSION_MINOR "11")
 set (RELEASE_SERVICE_VERSION_MICRO "70")
 set (RELEASE_SERVICE_VERSION "${RELEASE_SERVICE_VERSION_MAJOR}.${RELEASE_SERVICE_VERSION_MINOR}.${RELEASE_SERVICE_VERSION_MICRO}")
 
-project(okular VERSION 1.10.${RELEASE_SERVICE_VERSION_MICRO})
+project(okular VERSION 1.11.${RELEASE_SERVICE_VERSION_MICRO})
 
 set(QT_REQUIRED_VERSION "5.9.0") # Remember to update the QT_DEPRECATED_WARNINGS_SINCE below
 set(KF5_REQUIRED_VERSION "5.44.0") # Remember to update the KF_DEPRECATED_WARNINGS_SINCE below
@@ -111,13 +111,6 @@ find_package(KF5 ${KF5_REQUIRED_VERSION} REQUIRED COMPONENTS
     JS
     Wallet
 )
-
-if(KF5Wallet_FOUND)
-    add_definitions(-DWITH_KWALLET=1)
-endif()
-if(KF5JS_FOUND)
-    add_definitions(-DWITH_KJS=1)
-endif()
 
 if(NOT WIN32 AND NOT ANDROID)
     find_package(KF5 ${KF5_REQUIRED_VERSION} REQUIRED COMPONENTS
@@ -358,16 +351,6 @@ if (KF5JS_FOUND)
             core/script/kjs_ocg.cpp
     )
     target_link_libraries(okularcore PRIVATE KF5::JS KF5::JSApi)
-    set(CMAKE_REQUIRED_LIBRARIES KF5::JSApi)
-    check_cxx_source_compiles("
-#include <kjs/kjsinterpreter.h>
-int main()
-{
-  KJSInterpreter *ip = 0;
-  ip->setTimeoutTime(0);
-  return 0;
-}
-"   HAVE_KJS_TIMEOUT)
 endif()
 
 set_target_properties(okularcore PROPERTIES VERSION 9.0.0 SOVERSION 9 OUTPUT_NAME Okular5Core EXPORT_NAME Core)
@@ -399,6 +382,7 @@ if(BUILD_DESKTOP)
   set(okularpart_SRCS
     ${okularpart_conf_SRCS}
     part.cpp
+    xmlgui_helper.cpp
     extensions.cpp
     ui/embeddedfilesdialog.cpp
     ui/annotationactionhandler.cpp

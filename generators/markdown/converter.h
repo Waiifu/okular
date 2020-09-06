@@ -18,30 +18,41 @@
 class QTextBlock;
 class QTextFrame;
 
-namespace Markdown {
-
+namespace Markdown
+{
 class Converter : public Okular::TextDocumentConverter
 {
     Q_OBJECT
 
-    public:
-        Converter();
-        ~Converter() override;
+public:
+    Converter();
+    ~Converter() override;
 
-        QTextDocument *convert( const QString &fileName ) override;
+    QTextDocument *convert(const QString &fileName) override;
 
-        void convertAgain();
+    void convertAgain();
 
-        QTextDocument *convertOpenFile();
+    void setFancyPantsEnabled(bool b)
+    {
+        m_isFancyPantsEnabled = b;
+    }
+    bool isFancyPantsEnabled() const
+    {
+        return m_isFancyPantsEnabled;
+    }
 
-    private:
-        void extractLinks(QTextFrame *parent, QHash<QString, QTextFragment> &internalLinks, QHash<QString, QTextBlock> &documentAnchors);
-        void extractLinks(const QTextBlock& parent, QHash<QString, QTextFragment> &internalLinks, QHash<QString, QTextBlock> &documentAnchors);
-        void convertImages(QTextFrame *parent, const QDir &dir, QTextDocument *textDocument);
-        void convertImages(const QTextBlock& parent, const QDir &dir, QTextDocument *textDocument);
+    QTextDocument *convertOpenFile();
 
-        FILE *m_markdownFile;
-        QDir m_fileDir;
+private:
+    void extractLinks(QTextFrame *parent, QHash<QString, QTextFragment> &internalLinks, QHash<QString, QTextBlock> &documentAnchors);
+    void extractLinks(const QTextBlock &parent, QHash<QString, QTextFragment> &internalLinks, QHash<QString, QTextBlock> &documentAnchors);
+    void convertImages(QTextFrame *parent, const QDir &dir, QTextDocument *textDocument);
+    void convertImages(const QTextBlock &parent, const QDir &dir, QTextDocument *textDocument);
+    void setImageSize(QTextImageFormat &format, const qreal specifiedWidth, const qreal specifiedHeight, const qreal originalWidth, const qreal originalHeight);
+
+    FILE *m_markdownFile;
+    QDir m_fileDir;
+    bool m_isFancyPantsEnabled;
 };
 
 }

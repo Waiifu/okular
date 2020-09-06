@@ -7,6 +7,7 @@
   <name xml:lang="ca">Okular</name>
   <name xml:lang="ca-valencia">Okular</name>
   <name xml:lang="cs">Okular</name>
+  <name xml:lang="da">Okular</name>
   <name xml:lang="de">Okular</name>
   <name xml:lang="el">Okular</name>
   <name xml:lang="en-GB">Okular</name>
@@ -40,8 +41,8 @@
   <name xml:lang="zh-CN">Okular</name>
   <name xml:lang="zh-TW">Okular</name>
   <summary>Document Viewer</summary>
-  <summary xml:lang="ca">Visualitzador de documents</summary>
-  <summary xml:lang="ca-valencia">Visualitzador de documents</summary>
+  <summary xml:lang="ca">Visor de documents</summary>
+  <summary xml:lang="ca-valencia">Visor de documents</summary>
   <summary xml:lang="cs">Prohlížeč dokumentů</summary>
   <summary xml:lang="de">Dokumentenbetrachter</summary>
   <summary xml:lang="el">Πρόγραμμα προβολής εγγράφων</summary>
@@ -79,8 +80,8 @@
     <p>
    Okular is a universal document viewer developed by KDE. Okular works on multiple platforms, including but not limited to Linux, Windows, Mac OS X, *BSD, etc.
   </p>
-    <p xml:lang="ca">L'Okular és un visualitzador universal de documents desenvolupat pel KDE. L'Okular funciona en diverses plataformes, incloent-hi però sense limitar en el Linux, Windows, Mac OS X, *BSD, etc.</p>
-    <p xml:lang="ca-valencia">L'Okular és un visualitzador universal de documents desenvolupat pel KDE. L'Okular funciona en diverses plataformes, incloent-hi però sense limitar en el Linux, Windows, Mac OS X, *BSD, etc.</p>
+    <p xml:lang="ca">L'Okular és un visor universal de documents desenvolupat pel KDE. L'Okular funciona en múltiples plataformes, incloent-hi però sense limitar-se a Linux, Windows, Mac OS X, *BSD, etc.</p>
+    <p xml:lang="ca-valencia">L'Okular és un visor universal de documents desenvolupat pel KDE. L'Okular funciona en múltiples plataformes, incloent-hi però sense limitar-se a Linux, Windows, Mac OS X, *BSD, etc.</p>
     <p xml:lang="de">Okular ist ein universeller Dokumentenbetrachter, der von  KDE entwickelt wird. Okular ist auf verschiedenen Plattformen verfügbar, darunter auch Linux, Windows, Mac OS X, *BSD usw.</p>
     <p xml:lang="el">Το Okular είναι ένας καθολικός προβολέας εγγράφων που αναπτύχθηκε από το KDE. Το Okular λειτουργεί σε πολλές πλατφόρμες, όπως σε Linux, Windows, Mac OS X, *BSD, κλπ.</p>
     <p xml:lang="en-GB">Okular is a universal document viewer developed by KDE. Okular works on multiple platforms, including but not limited to Linux, Windows, Mac OS X, *BSD, etc.</p>
@@ -306,9 +307,9 @@
     <value key="KDE::windows_store">https://www.microsoft.com/store/apps/9n41msq1wnm8</value>
   </custom>
   <releases>
-    <release version="1.10.1" date="2020-05-14"/>
-    <release version="1.10.0" date="2020-04-23"/>
-    <release version="1.9.3" date="2020-03-05"/>
-    <release version="1.9.2" date="2020-02-06"/>
+    <release version="1.11.1" date="2020-09-03"/>
+    <release version="1.11.0" date="2020-08-13"/>
+    <release version="1.10.3" date="2020-07-09"/>
+    <release version="1.10.2" date="2020-06-11"/>
   </releases>
 </component>

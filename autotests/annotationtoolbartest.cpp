@@ -11,28 +11,34 @@
 
 #include <QtTest>
 
-#include <QWidget>
+#include <KActionCollection>
 #include <QTabBar>
 #include <QTabWidget>
 #include <QToolBar>
-#include <KActionCollection>
+#include <QWidget>
 
+#include <KSelectAction>
+
+#include "../core/page.h"
+#include "../part.h"
+#include "../settings.h"
 #include "../shell/okular_main.h"
 #include "../shell/shell.h"
 #include "../shell/shellutils.h"
-#include "../core/page.h"
 #include "../ui/pageview.h"
-#include "../part.h"
-#include "../settings.h"
+#include "closedialoghelper.h"
 
-namespace Okular {
+namespace Okular
+{
 class PartTest
 {
 public:
-    Okular::Document *partDocument(Okular::Part *part) const {
+    Okular::Document *partDocument(Okular::Part *part) const
+    {
         return part->m_document;
     }
-    PageView *pageView(Okular::Part *part) const {
+    PageView *pageView(Okular::Part *part) const
+    {
         return part->m_pageView;
     }
 };
@@ -44,7 +50,7 @@ class AnnotationToolBarTest : public QObject, public Okular::PartTest
 
 public:
     static void initMain();
-    static QTabWidget* tabWidget(Shell *s)
+    static QTabWidget *tabWidget(Shell *s)
     {
         return s->m_tabWidget;
     }
@@ -62,15 +68,14 @@ private slots:
     void testAnnotationToolBarConfigActionsEnabledState_data();
 
 private:
-    bool simulateAddPopupAnnotation(Okular::Part * part, int mouseX, int mouseY);
+    bool simulateAddPopupAnnotation(Okular::Part *part, int mouseX, int mouseY);
 };
 
 Shell *findShell(Shell *ignore = nullptr)
 {
     const QWidgetList wList = QApplication::topLevelWidgets();
-    for (QWidget *widget : wList )
-    {
-        Shell *s = qobject_cast<Shell*>(widget);
+    for (QWidget *widget : wList) {
+        Shell *s = qobject_cast<Shell *>(widget);
         if (s && s != ignore)
             return s;
     }
@@ -93,7 +98,7 @@ void AnnotationToolBarTest::initTestCase()
 {
     QStandardPaths::setTestModeEnabled(true);
     // Don't pollute people's okular settings
-    Okular::Settings::instance( QStringLiteral("annotationtoolbartest") );
+    Okular::Settings::instance(QStringLiteral("annotationtoolbartest"));
 }
 
 void AnnotationToolBarTest::init()
@@ -105,18 +110,17 @@ void AnnotationToolBarTest::init()
 void AnnotationToolBarTest::cleanup()
 {
     Shell *s;
-    while ((s = findShell()))
-    {
+    while ((s = findShell())) {
         delete s;
     }
 }
 
-bool AnnotationToolBarTest::simulateAddPopupAnnotation(Okular::Part * part, int mouseX, int mouseY)
+bool AnnotationToolBarTest::simulateAddPopupAnnotation(Okular::Part *part, int mouseX, int mouseY)
 {
-    int annotationCount = partDocument(part)->page( 0 )->annotations().size();
+    int annotationCount = partDocument(part)->page(0)->annotations().size();
     QTest::mouseMove(pageView(part)->viewport(), QPoint(mouseX, mouseY));
     QTest::mouseClick(pageView(part)->viewport(), Qt::LeftButton, Qt::NoModifier, QPoint(mouseX, mouseY));
-    bool annotationAdded = partDocument(part)->page( 0 )->annotations().size() == annotationCount + 1;
+    bool annotationAdded = partDocument(part)->page(0)->annotations().size() == annotationCount + 1;
     return annotationAdded;
 }
 
@@ -125,8 +129,7 @@ void AnnotationToolBarTest::testAnnotationToolBar()
     // Using tabs we test that the annotation toolbar works on each Okular::Part
     Okular::Settings::self()->setShellOpenFileInTabs(true);
 
-    const QStringList paths = { QStringLiteral(KDESRCDIR "data/file1.pdf"),
-                                QStringLiteral(KDESRCDIR "data/file2.pdf") };
+    const QStringList paths = {QStringLiteral(KDESRCDIR "data/file1.pdf"), QStringLiteral(KDESRCDIR "data/file2.pdf")};
     QString serializedOptions = ShellUtils::serializeOptions(false, false, false, false, false, QString(), QString());
 
     Okular::Status status = Okular::main(paths, serializedOptions);
@@ -137,14 +140,14 @@ void AnnotationToolBarTest::testAnnotationToolBar()
 
     QFETCH(int, tabIndex);
     s->m_tabWidget->tabBar()->setCurrentIndex(tabIndex);
-    Okular::Part *part = dynamic_cast<Okular::Part*>(s->m_tabs[tabIndex].part);
+    Okular::Part *part = dynamic_cast<Okular::Part *>(s->m_tabs[tabIndex].part);
     QVERIFY(part);
 
-    QToolBar *annToolBar = s->findChild<QToolBar*>(QStringLiteral("annotationToolBar"));
+    QToolBar *annToolBar = s->findChild<QToolBar *>(QStringLiteral("annotationToolBar"));
     QVERIFY(annToolBar);
 
     // Check config action default enabled states
-    QAction *aQuickTools = part->actionCollection()->action(QStringLiteral("annotation_favorites"));
+    KSelectAction *aQuickTools = qobject_cast<KSelectAction *>(part->actionCollection()->action(QStringLiteral("annotation_favorites")));
     QAction *aAddToQuickTools = part->actionCollection()->action(QStringLiteral("annotation_bookmark"));
     QAction *aAdvancedSettings = part->actionCollection()->action(QStringLiteral("annotation_settings_advanced"));
     QAction *aContinuousMode = part->actionCollection()->action(QStringLiteral("annotation_settings_pin"));
@@ -152,6 +155,10 @@ void AnnotationToolBarTest::testAnnotationToolBar()
     QVERIFY(!aAddToQuickTools->isEnabled());
     QVERIFY(!aAdvancedSettings->isEnabled());
     QVERIFY(aContinuousMode->isEnabled());
+
+    // Ensure that the 'Quick Annotations' action is correctly populated
+    // (at least the 'Configure Annotations...' action must be present)
+    QVERIFY(!aQuickTools->actions().isEmpty());
 
     // Test annotation toolbar visibility triggers
     QAction *toggleAnnotationToolBar = part->actionCollection()->action(QStringLiteral("mouse_toggle_annotate"));
@@ -218,6 +225,22 @@ void AnnotationToolBarTest::testAnnotationToolBar()
     aContinuousMode->trigger();
     QCOMPARE(simulateAddPopupAnnotation(part, mouseX, mouseY), true);
     QCOMPARE(simulateAddPopupAnnotation(part, mouseX, mouseY), false);
+
+    // Test adding a tool to the quick tool list using the bookmark action
+    QScopedPointer<TestingUtils::CloseDialogHelper> closeDialogHelper;
+    closeDialogHelper.reset(new TestingUtils::CloseDialogHelper(QDialogButtonBox::Ok));
+    QAction *aEllipse = part->actionCollection()->action(QStringLiteral("annotation_ellipse"));
+    aEllipse->trigger();
+    QVERIFY(aEllipse->isChecked());
+    int quickActionCount = aQuickTools->actions().size();
+    aAddToQuickTools->trigger();
+    QCOMPARE(aQuickTools->actions().size(), quickActionCount + 1);
+    // Test that triggering a Quick Annotation action checks the corresponding built-in annotation action
+    aQuickTools->actions().at(5)->trigger();
+    QVERIFY(aPopupNote->isChecked());
+    // Test again for tool just added to the quick tools using the bookmark button
+    aQuickTools->actions().at(6)->trigger();
+    QVERIFY(aEllipse->isChecked());
 }
 
 void AnnotationToolBarTest::testAnnotationToolBar_data()
@@ -231,7 +254,7 @@ void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState()
 {
     QFETCH(QString, document);
 
-    const QStringList paths = { document };
+    const QStringList paths = {document};
     QString serializedOptions = ShellUtils::serializeOptions(false, false, false, false, false, QString(), QString());
 
     Okular::Status status = Okular::main(paths, serializedOptions);
@@ -240,10 +263,11 @@ void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState()
     QVERIFY(s);
     QVERIFY(QTest::qWaitForWindowExposed(s));
 
-    Okular::Part *part = s->findChild<Okular::Part*>();
+    Okular::Part *part = s->findChild<Okular::Part *>();
     QVERIFY(part);
 
     KActionCollection *ac = part->actionCollection();
+    QAction *aQuickTools = ac->action(QStringLiteral("annotation_favorites"));
     QAction *aHighlighter = ac->action(QStringLiteral("annotation_highlighter"));
     QAction *aUnderline = ac->action(QStringLiteral("annotation_underline"));
     QAction *aSquiggle = ac->action(QStringLiteral("annotation_squiggle"));
@@ -255,6 +279,7 @@ void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState()
     QAction *aGeomShapes = ac->action(QStringLiteral("annotation_geometrical_shape"));
     QAction *aStamp = ac->action(QStringLiteral("annotation_stamp"));
 
+    QFETCH(bool, aQuickToolsEnabled);
     QFETCH(bool, aHighlighterEnabled);
     QFETCH(bool, aUnderlineEnabled);
     QFETCH(bool, aSquiggleEnabled);
@@ -266,6 +291,25 @@ void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState()
     QFETCH(bool, aGeomShapesEnabled);
     QFETCH(bool, aStampEnabled);
 
+    QCOMPARE(aQuickTools->isEnabled(), aQuickToolsEnabled);
+    QCOMPARE(aHighlighter->isEnabled(), aHighlighterEnabled);
+    QCOMPARE(aUnderline->isEnabled(), aUnderlineEnabled);
+    QCOMPARE(aSquiggle->isEnabled(), aSquiggleEnabled);
+    QCOMPARE(aStrikeout->isEnabled(), aStrikeoutEnabled);
+    QCOMPARE(aTypewriter->isEnabled(), aTypewriterEnabled);
+    QCOMPARE(aInlineNote->isEnabled(), aInlineNoteEnabled);
+    QCOMPARE(aPopupNote->isEnabled(), aPopupNoteEnabled);
+    QCOMPARE(aFreehandLine->isEnabled(), aFreehandLineEnabled);
+    QCOMPARE(aGeomShapes->isEnabled(), aGeomShapesEnabled);
+    QCOMPARE(aStamp->isEnabled(), aStampEnabled);
+
+    // trigger a reparsing of the tools to ensure that the enabled/disabled state is not changed (bug: 424296)
+    QAction *aMouseSelect = ac->action(QStringLiteral("mouse_select"));
+    QAction *aMouseNormal = ac->action(QStringLiteral("mouse_drag"));
+    aMouseSelect->trigger();
+    aMouseNormal->trigger();
+
+    QCOMPARE(aQuickTools->isEnabled(), aQuickToolsEnabled);
     QCOMPARE(aHighlighter->isEnabled(), aHighlighterEnabled);
     QCOMPARE(aUnderline->isEnabled(), aUnderlineEnabled);
     QCOMPARE(aSquiggle->isEnabled(), aSquiggleEnabled);
@@ -281,6 +325,7 @@ void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState()
 void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState_data()
 {
     QTest::addColumn<QString>("document");
+    QTest::addColumn<bool>("aQuickToolsEnabled");
     QTest::addColumn<bool>("aHighlighterEnabled");
     QTest::addColumn<bool>("aUnderlineEnabled");
     QTest::addColumn<bool>("aSquiggleEnabled");
@@ -292,17 +337,14 @@ void AnnotationToolBarTest::testAnnotationToolBarActionsEnabledState_data()
     QTest::addColumn<bool>("aGeomShapesEnabled");
     QTest::addColumn<bool>("aStampEnabled");
 
-    QTest::addRow("pdf") << QStringLiteral(KDESRCDIR "data/file1.pdf")
-        << true << true << true << true << true << true << true << true << true << true;
-    QTest::addRow("protected-pdf") << QStringLiteral(KDESRCDIR "data/protected.pdf")
-    << false << false << false << false << false << false << false << false << false << false;
-    QTest::addRow("image") << QStringLiteral(KDESRCDIR "data/potato.jpg")
-        << false << false << false << false << true << true << true << true << true << true;
+    QTest::addRow("pdf") << QStringLiteral(KDESRCDIR "data/file1.pdf") << true << true << true << true << true << true << true << true << true << true << true;
+    QTest::addRow("protected-pdf") << QStringLiteral(KDESRCDIR "data/protected.pdf") << false << false << false << false << false << false << false << false << false << false << false;
+    QTest::addRow("image") << QStringLiteral(KDESRCDIR "data/potato.jpg") << true << false << false << false << false << true << true << true << true << true << true;
 }
 
 void AnnotationToolBarTest::testAnnotationToolBarConfigActionsEnabledState()
 {
-    const QStringList paths = { QStringLiteral(KDESRCDIR "data/file1.pdf") };
+    const QStringList paths = {QStringLiteral(KDESRCDIR "data/file1.pdf")};
     QString serializedOptions = ShellUtils::serializeOptions(false, false, false, false, false, QString(), QString());
 
     Okular::Status status = Okular::main(paths, serializedOptions);
@@ -311,7 +353,7 @@ void AnnotationToolBarTest::testAnnotationToolBarConfigActionsEnabledState()
     QVERIFY(s);
     QVERIFY(QTest::qWaitForWindowExposed(s));
 
-    Okular::Part *part = s->findChild<Okular::Part*>();
+    Okular::Part *part = s->findChild<Okular::Part *>();
     QVERIFY(part);
 
     KActionCollection *ac = part->actionCollection();
@@ -347,27 +389,17 @@ void AnnotationToolBarTest::testAnnotationToolBarConfigActionsEnabledState_data(
     QTest::addColumn<bool>("opacityEnabled");
     QTest::addColumn<bool>("fontEnabled");
 
-    QTest::addRow("annotation_highlighter") << QStringLiteral("annotation_highlighter")
-                                            << false << true << false << true << false;
-    QTest::addRow("annotation_underline") << QStringLiteral("annotation_underline")
-                                          << false << true << false << true << false;
-    QTest::addRow("annotation_squiggle") << QStringLiteral("annotation_squiggle")
-                                         << false << true << false << true << false;
-    QTest::addRow("annotation_strike_out") << QStringLiteral("annotation_strike_out")
-                                           << false << true << false << true << false;
-    QTest::addRow("annotation_typewriter") << QStringLiteral("annotation_typewriter")
-                                           << false << true << false << true << true;
-    QTest::addRow("annotation_inline_note") << QStringLiteral("annotation_inline_note")
-                                            << false << true << false << true << true;
-    QTest::addRow("annotation_popup_note") << QStringLiteral("annotation_popup_note")
-                                           << false << true << false << true << false;
-    QTest::addRow("annotation_freehand_line") << QStringLiteral("annotation_freehand_line")
-                                              << true << true << false << true << false;
-    QTest::addRow("annotation_line") << QStringLiteral("annotation_straight_line")
-                                     << true << true << false << true << false;
-    QTest::addRow("annotation_rectangle") << QStringLiteral("annotation_rectangle")
-                                            << true << true << true << true << false;
+    QTest::addRow("annotation_highlighter") << QStringLiteral("annotation_highlighter") << false << true << false << true << false;
+    QTest::addRow("annotation_underline") << QStringLiteral("annotation_underline") << false << true << false << true << false;
+    QTest::addRow("annotation_squiggle") << QStringLiteral("annotation_squiggle") << false << true << false << true << false;
+    QTest::addRow("annotation_strike_out") << QStringLiteral("annotation_strike_out") << false << true << false << true << false;
+    QTest::addRow("annotation_typewriter") << QStringLiteral("annotation_typewriter") << false << true << false << true << true;
+    QTest::addRow("annotation_inline_note") << QStringLiteral("annotation_inline_note") << false << true << false << true << true;
+    QTest::addRow("annotation_popup_note") << QStringLiteral("annotation_popup_note") << false << true << false << true << false;
+    QTest::addRow("annotation_freehand_line") << QStringLiteral("annotation_freehand_line") << true << true << false << true << false;
+    QTest::addRow("annotation_line") << QStringLiteral("annotation_straight_line") << true << true << false << true << false;
+    QTest::addRow("annotation_rectangle") << QStringLiteral("annotation_rectangle") << true << true << true << true << false;
 }
 
-QTEST_MAIN( AnnotationToolBarTest )
+QTEST_MAIN(AnnotationToolBarTest)
 #include "annotationtoolbartest.moc"

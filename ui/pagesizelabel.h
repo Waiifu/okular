@@ -10,11 +10,12 @@
 #ifndef _OKULAR_PAGESIZELABEL_H_
 #define _OKULAR_PAGESIZELABEL_H_
 
-#include <ksqueezedtextlabel.h>
+#include <KSqueezedTextLabel>
 
 #include "core/observer.h"
 
-namespace Okular {
+namespace Okular
+{
 class Document;
 }
 
@@ -25,16 +26,15 @@ class PageSizeLabel : public KSqueezedTextLabel, public Okular::DocumentObserver
 {
     Q_OBJECT
 
-    public:
-        PageSizeLabel( QWidget *parent, Okular::Document * document );
-        ~PageSizeLabel() override;
+public:
+    PageSizeLabel(QWidget *parent, Okular::Document *document);
+    ~PageSizeLabel() override;
 
-        // [INHERITED] from DocumentObserver
-        void notifyCurrentPageChanged( int previous, int current ) override;
+    // [INHERITED] from DocumentObserver
+    void notifyCurrentPageChanged(int previous, int current) override;
 
-    private:
-        Okular::Document * m_document;
+private:
+    Okular::Document *m_document;
 };
 
 #endif
-

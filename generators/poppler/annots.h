@@ -16,27 +16,28 @@
 #include <poppler-annotation.h>
 #include <poppler-qt5.h>
 
-#include <qmutex.h>
+#include <QMutex>
 
-#include "core/annotations.h"
 #include "config-okular-poppler.h"
+#include "core/annotations.h"
 
-extern Okular::Annotation* createAnnotationFromPopplerAnnotation( Poppler::Annotation *ann, bool * doDelete );
+extern Okular::Annotation *createAnnotationFromPopplerAnnotation(Poppler::Annotation *popplerAnnotation, const Poppler::Page &popplerPage, bool *doDelete);
 
 class PopplerAnnotationProxy : public Okular::AnnotationProxy
 {
-    public:
-        PopplerAnnotationProxy( Poppler::Document *doc, QMutex *userMutex, QHash<Okular::Annotation*, Poppler::Annotation*> *annotsOnOpenHash );
-        ~PopplerAnnotationProxy() override;
+public:
+    PopplerAnnotationProxy(Poppler::Document *doc, QMutex *userMutex, QHash<Okular::Annotation *, Poppler::Annotation *> *annotsOnOpenHash);
+    ~PopplerAnnotationProxy() override;
 
-        bool supports( Capability capability ) const override;
-        void notifyAddition( Okular::Annotation *okl_ann, int page ) override;
-        void notifyModification( const Okular::Annotation *okl_ann, int page, bool appearanceChanged ) override;
-        void notifyRemoval( Okular::Annotation *okl_ann, int page ) override;
-    private:
-        Poppler::Document *ppl_doc;
-        QMutex *mutex;
-        QHash<Okular::Annotation*, Poppler::Annotation*> *annotationsOnOpenHash;
+    bool supports(Capability capability) const override;
+    void notifyAddition(Okular::Annotation *okl_ann, int page) override;
+    void notifyModification(const Okular::Annotation *okl_ann, int page, bool appearanceChanged) override;
+    void notifyRemoval(Okular::Annotation *okl_ann, int page) override;
+
+private:
+    Poppler::Document *ppl_doc;
+    QMutex *mutex;
+    QHash<Okular::Annotation *, Poppler::Annotation *> *annotationsOnOpenHash;
 };
 
 #endif

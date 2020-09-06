@@ -14,22 +14,22 @@
 
 #include "shell.h"
 
-#include <KLocalizedString>
-#include <QDBusInterface>
-#include <QTextStream>
-#include <kwindowsystem.h>
-#include <QApplication>
-#include <QtGlobal>
-#include <KAboutData>
-#include <KCrash>
-#include <KMessageBox>
-#include <QCommandLineParser>
-#include <QCommandLineOption>
 #include "aboutdata.h"
 #include "okular_main.h"
 #include "shellutils.h"
+#include <KAboutData>
+#include <KCrash>
+#include <KLocalizedString>
+#include <KMessageBox>
+#include <KWindowSystem>
+#include <QApplication>
+#include <QCommandLineOption>
+#include <QCommandLineParser>
+#include <QDBusInterface>
+#include <QTextStream>
+#include <QtGlobal>
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     /**
      * enable high dpi support
@@ -37,12 +37,30 @@ int main(int argc, char** argv)
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
 
+    /**
+     * allow fractional scaling
+     * we only activate this on Windows, it seems to creates problems on unices
+     * (and there the fractional scaling with the QT_... env vars as set by KScreen works)
+     * see bug 416078
+     */
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0) && defined(Q_OS_WIN)
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+#endif
+
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
     QCoreApplication::setAttribute(Qt::AA_CompressTabletEvents);
 #endif
 
     QApplication app(argc, argv);
     KLocalizedString::setApplicationDomain("okular");
+
+    /**
+     * For Windows and macOS: use Breeze if available
+     * Of all tested styles that works the best for us
+     */
+#if defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+    QApplication::setStyle(QStringLiteral("breeze"));
+#endif
 
     KAboutData aboutData = okularAboutData();
     KAboutData::setApplicationData(aboutData);
@@ -69,26 +87,22 @@ int main(int argc, char** argv)
     aboutData.processCommandLine(&parser);
 
     // see if we are starting with session management
-    if (app.isSessionRestored())
-    {
+    if (app.isSessionRestored()) {
         kRestoreMainWindows<Shell>();
-    }
-    else
-    {
+    } else {
         // no session.. just start up normally
         QStringList paths;
-        for ( int i = 0; i < parser.positionalArguments().count(); ++i )
+        for (int i = 0; i < parser.positionalArguments().count(); ++i)
             paths << parser.positionalArguments().at(i);
         Okular::Status status = Okular::main(paths, ShellUtils::serializeOptions(parser));
-        switch (status)
-        {
-            case Okular::Error:
-                return -1;
-            case Okular::AttachedOtherProcess:
-                return 0;
-            case Okular::Success:
-                // Do nothing
-                break;
+        switch (status) {
+        case Okular::Error:
+            return -1;
+        case Okular::AttachedOtherProcess:
+            return 0;
+        case Okular::Success:
+            // Do nothing
+            break;
         }
     }
 
